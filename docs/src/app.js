@@ -249,7 +249,37 @@ function displayResult(data) {
             <div class="result-card"><h3>Appendage Rapp</h3><span class="value">${formatNumber(data.Rapp, 'N')}</span></div>
             <div class="result-card"><h3>Transom Rw_add</h3><span class="value">${formatNumber(data.Rw_add, 'N')}</span></div>
         </div>
+        <div class="chart-container" style="margin-top:24px;"><canvas id="singleChart"></canvas></div>
     `;
+
+    destroyChart('singleChart');
+
+    const ctx = document.getElementById('singleChart').getContext('2d');
+    window.singleChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Rf', 'Rw', 'Rv', 'Ra', 'Rapp', 'Rw_add'],
+            datasets: [{
+                label: 'Resistance [kN]',
+                data: [data.Rf / 1000, data.Rw / 1000, data.Rv / 1000, data.Ra / 1000, data.Rapp / 1000, data.Rw_add / 1000],
+                backgroundColor: ['#ef4444', '#00b4d8', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'],
+                borderColor: ['#dc2626', '#0077b6', '#059669', '#d97706', '#7c3aed', '#db2777'],
+                borderWidth: 1,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: { display: true, text: 'Resistance Components [kN]', font: { size: 16 } },
+                legend: { display: false },
+            },
+            scales: {
+                x: { title: { display: true, text: 'Component' } },
+                y: { title: { display: true, text: 'Resistance [kN]' }, beginAtZero: true },
+            },
+        },
+    });
 }
 
 function displaySweep(results, method, Vmin, Vmax, nPoints) {
@@ -268,8 +298,9 @@ function displaySweep(results, method, Vmin, Vmax, nPoints) {
         </div>
     `;
 
+    destroyChart('sweepChart');
+
     const ctx = document.getElementById('sweepChart').getContext('2d');
-    if (window.sweepChart) window.sweepChart.destroy();
 
     window.sweepChart = new Chart(ctx, {
         type: 'line',
@@ -292,6 +323,13 @@ function displaySweep(results, method, Vmin, Vmax, nPoints) {
             },
         },
     });
+}
+
+function destroyChart(chartVar) {
+    if (window[chartVar] && typeof window[chartVar].destroy === 'function') {
+        window[chartVar].destroy();
+        window[chartVar] = null;
+    }
 }
 
 function showLoading() {

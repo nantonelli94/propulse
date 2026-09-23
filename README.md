@@ -35,7 +35,7 @@ python main.py
 ### Run Frontend
 
 ```bash
-cd frontend
+cd docs
 python -m http.server 3000
 # Open http://localhost:3000
 ```
@@ -118,19 +118,20 @@ propulse/
 │   ├── tests/
 │   │   └── test_methods.py  # Unit tests
 │   └── requirements.txt
-├── frontend/
+
+├── docs/                     # Frontend web UI + methods docs
 │   ├── index.html
 │   ├── assets/
 │   │   └── style.css
 │   └── src/
 │       └── app.js
-├── docs/
-│   ├── methods/
-│   └── examples/
 ├── data/
 │   ├── examples/
 │   └── validation/
 ├── scripts/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml       # CI/CD for GitHub Pages
 ├── main.py
 └── README.md
 ```

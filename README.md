@@ -150,7 +150,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 **Nicolas Antonelli** — Marine Engineer, CFD Analyst
 
 - GitHub: [@nantonelli94](https://github.com/nantonelli94)
-- LinkedIn: [Nicolas Antonelli](https://linkedin.com/in/nantonelli94)
+- LinkedIn: [Nicolas Antonelli](https://www.linkedin.com/in/nicolás-alejandro-antonelli-65825a132)
 
 ---
 

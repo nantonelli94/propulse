@@ -1,0 +1,12 @@
+{
+  "name": "propulse-frontend",
+  "version": "1.0.0",
+  "description": "PROPULSE - Conceptual Ship Resistance & Power Prediction Tool",
+  "private": true,
+  "scripts": {
+    "dev": "npx http-server -p 3000",
+    "build": "echo 'Static files - no build needed'",
+    "serve": "npx http-server -p 3000"
+  },
+  "devDependencies": {}
+}

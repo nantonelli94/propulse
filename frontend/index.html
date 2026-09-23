@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROPULSE - Ship Resistance & Power Prediction</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PROPULSE</h1>
+            <p class="subtitle">Conceptual Ship Resistance & Power Prediction</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="input-panel">
+            <h2>Hull Geometry</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="LWL">LWL [m]</label>
+                    <input type="number" id="LWL" value="100" min="1" max="400" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="B">Beam B [m]</label>
+                    <input type="number" id="B" value="15" min="1" max="80" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="T">Draft T [m]</label>
+                    <input type="number" id="T" value="5" min="0.5" max="30" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="D">Propeller D [m]</label>
+                    <input type="number" id="D" value="3.5" min="0.5" max="40" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="Cp">Prismatic Cp</label>
+                    <input type="number" id="Cp" value="0.65" min="0.5" max="0.95" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="Cb">Block Cb</label>
+                    <input type="number" id="Cb" value="0.70" min="0.4" max="0.95" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="Cm">Midship Cm</label>
+                    <input type="number" id="Cm" value="0.85" min="0.7" max="0.99" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="Cwp">Waterplane Cwp</label>
+                    <input type="number" id="Cwp" value="0.75" min="0.6" max="0.95" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="LCB">LCB [% LWL]</label>
+                    <input type="number" id="LCB" value="0" min="-10" max="10" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="S">Wetted Surface S [m²]</label>
+                    <input type="number" id="S" value="1800" min="1" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="Disp">Displacement [m³]</label>
+                    <input type="number" id="Disp" value="3500" min="1" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="rho">Water Density [kg/m³]</label>
+                    <input type="number" id="rho" value="1025" min="900" max="1100" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="nu">Viscosity [m²/s]</label>
+                    <input type="number" id="nu" value="1.188e-6" min="1e-7" max="1e-4" step="1e-8">
+                </div>
+                <div class="form-group">
+                    <label for="g">Gravity [m/s²]</label>
+                    <input type="number" id="g" value="9.81" min="9" max="10" step="0.01">
+                </div>
+            </div>
+
+            <h2>Propeller</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="Z">Blades Z</label>
+                    <input type="number" id="Z" value="4" min="2" max="7" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="P_D">Pitch Ratio P/D</label>
+                    <input type="number" id="P_D" value="0.8" min="0.4" max="1.5" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="Ae_Ao">Area Ratio Ae/Ao</label>
+                    <input type="number" id="Ae_Ao" value="0.7" min="0.2" max="1.2" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="shaft_angle">Shaft Angle [deg]</label>
+                    <input type="number" id="shaft_angle" value="0" min="0" max="15" step="0.5">
+                </div>
+            </div>
+
+            <h2>Appendages</h2>
+            <div class="form-grid checkboxes">
+                <div class="form-group checkbox">
+                    <label><input type="checkbox" id="has_bulbous_bow" checked> Bulbous Bow</label>
+                </div>
+                <div class="form-group checkbox">
+                    <label><input type="checkbox" id="has_transom"> Transom Stern</label>
+                </div>
+                <div class="form-group checkbox">
+                    <label><input type="checkbox" id="has_skeg"> Skeg</label>
+                </div>
+                <div class="form-group checkbox">
+                    <label><input type="checkbox" id="has_strut"> Shaft Struts</label>
+                </div>
+                <div class="form-group checkbox">
+                    <label><input type="checkbox" id="has_stabilizer"> Stabilizer Fins</label>
+                </div>
+            </div>
+
+            <h2>Environment</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="roughness_k">Roughness k [m]</label>
+                    <input type="number" id="roughness_k" value="150e-6" min="0" max="1e-3" step="1e-6">
+                </div>
+                <div class="form-group">
+                    <label for="windage_coeff">Windage Coeff Caa</label>
+                    <input type="number" id="windage_coeff" value="1.0" min="0" max="2" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="air_density">Air Density [kg/m³]</label>
+                    <input type="number" id="air_density" value="1.225" min="0.5" max="2" step="0.01">
+                </div>
+            </div>
+
+            <h2>Prediction Settings</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="method">Method</label>
+                    <select id="method">
+                        <option value="holtrop1982">Holtrop & Mennen (1982)</option>
+                        <option value="holtrop2001">Holtrop (2001)</option>
+                        <option value="ittc1978">ITTC 1978</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="Vs">Speed [m/s]</label>
+                    <input type="number" id="Vs" value="8" min="0.5" max="30" step="0.1">
+                </div>
+            </div>
+
+            <h2>Speed Sweep</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="Vmin">Min Speed [m/s]</label>
+                    <input type="number" id="Vmin" value="2" min="0.5" max="30" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="Vmax">Max Speed [m/s]</label>
+                    <input type="number" id="Vmax" value="15" min="0.5" max="30" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="n_points">Points</label>
+                    <input type="number" id="n_points" value="50" min="10" max="500" step="1">
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button id="predictBtn" class="btn primary">Predict Single Speed</button>
+                <button id="sweepBtn" class="btn secondary">Run Speed Sweep</button>
+            </div>
+        </section>
+
+        <section class="results-panel">
+            <h2>Results</h2>
+            <div id="resultsContainer">
+                <p class="placeholder">Run a prediction to see results</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>PROPULSE v1.0.0 | MIT License | <a href="https://github.com/nantonelli94/propulse">GitHub</a></p>
+        </div>
+    </footer>
+
+    <script src="src/app.js"></script>
+</body>
+</html>

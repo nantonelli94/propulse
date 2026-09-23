@@ -1,0 +1,38 @@
+{
+  "name": "Example Container Ship",
+  "description": "Small feeder container ship",
+  "geometry": {
+    "LWL": 120.0,
+    "B": 18.0,
+    "T": 6.5,
+    "D": 4.0,
+    "Cp": 0.62,
+    "Cb": 0.65,
+    "Cm": 0.82,
+    "Cwp": 0.72,
+    "LCB": -1.5,
+    "S": 2100.0,
+    "Disp": 4800.0,
+    "Vs": 9.0,
+    "rho": 1025.0,
+    "nu": 1.188e-6,
+    "g": 9.81,
+    "Z": 4,
+    "P_D": 0.85,
+    "Ae_Ao": 0.72,
+    "shaft_angle": 0.0,
+    "has_bulbous_bow": true,
+    "has_transom": true,
+    "has_skeg": false,
+    "has_strut": false,
+    "has_stabilizer": false,
+    "roughness_k": 150e-6,
+    "windage_coeff": 1.0,
+    "air_density": 1.225
+  },
+  "speed_sweep": {
+    "Vmin": 2.0,
+    "Vmax": 18.0,
+    "n_points": 50
+  }
+}

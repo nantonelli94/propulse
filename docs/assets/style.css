@@ -153,35 +153,31 @@ h2:first-child { margin-top: 0; }
     border-bottom: 1px solid var(--border);
 }
 
-.ship-schematic {
-    margin-top: 24px;
-    padding: 16px;
-    background: #f8fafc;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+.description-panel {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--accent);
 }
 
-.ship-schematic h2 {
-    margin-top: 0;
+.description-panel h2 {
+    font-size: 1.25rem;
+    color: var(--primary);
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
 }
 
-.ship-schematic canvas {
-    display: block;
-    width: 100%;
-    max-width: 800px;
-    height: auto;
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 4px;
+.description-panel p {
+    margin-bottom: 12px;
+    line-height: 1.7;
+    color: var(--text);
 }
 
-.schematic-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 8px;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-weight: 600;
+.description-panel p:last-child {
+    margin-bottom: 0;
 }
 
 .buttons {

@@ -16,6 +16,15 @@
     </header>
 
     <main class="container">
+        <section class="description-panel">
+            <h2>About PROPULSE</h2>
+            <p><strong>PROPULSE</strong> is a conceptual design tool for predicting ship resistance and propulsive power during the early design stages. It implements three well-established regression methods to estimate the total resistance of a displacement vessel based on its hull geometry, propeller configuration, and operating conditions.</p>
+            <p>The tool calculates the <strong>frictional resistance</strong> (ITTC 1957/2011 correlation line), the <strong>wave-making resistance</strong> (Holtrop &amp; Mennen regression), and the <strong>viscous pressure resistance</strong> (form factor). It also estimates <strong>appendage resistance</strong> from the geometry of bulbous bows, transoms, skegs, shaft struts, and stabilizer fins, as well as <strong>air resistance</strong> from windage data. Finally, it computes the <strong>hull efficiency</strong>, <strong>propeller open-water efficiency</strong>, and <strong>delivered power</strong> required to overcome the total resistance at a given speed.</p>
+            <p>By entering the main hull parameters, propeller details, and appendage geometry, the user can perform a <strong>single-speed prediction</strong> or a <strong>speed sweep</strong> to generate resistance and power curves. Results include the total resistance (kN), effective power (kW), delivered power (kW), shaft horsepower (SHP), and the efficiency breakdown.</p>
+            <p>The three prediction methods available are: <strong>Holtrop &amp; Mennen (1982)</strong> — the classic approximate power prediction method; <strong>Holtrop (2001)</strong> — a revised version with updated coefficients; and <strong>ITTC 1978</strong> — the ITTC Recommended Procedure based on the standard series. The tool is intended for naval architects, marine engineers, and students performing preliminary design or comparative analysis of displacement vessels.</p>
+            <p style="margin-top:12px; padding: 12px; background: #f0f9ff; border-left: 4px solid #00b4d8; border-radius: 4px; font-size: 0.9rem; color: #0c4a6e;"><strong>Note:</strong> All resistance predictions are approximate and intended for conceptual design only. Model testing and CFD validation are recommended for final design.</p>
+        </section>
+
         <section class="input-panel">
             <h2>Hull Geometry</h2>
             <div class="form-grid">
@@ -280,20 +289,7 @@
                 <button id="sweepBtn" class="btn secondary">Run Speed Sweep</button>
             </div>
 
-            <!-- Ship Schematic -->
-            <div class="ship-schematic">
-                <h2>Ship Schematic</h2>
-                <canvas id="shipCanvas" width="800" height="400"></canvas>
-                <div class="schematic-labels">
-                    <span id="apLabel">AP</span>
-                    <span id="fpLabel">FP</span>
-                    <span id="baseLabel">Baseline</span>
-                    <span id="waterlineLabel">Waterline</span>
-                </div>
-            </div>
-        </section>
-
-        <section class="results-panel">
+        <section class="input-panel">
             <h2>Results</h2>
             <div id="resultsContainer">
                 <p class="placeholder">Run a prediction to see results</p>

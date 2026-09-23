@@ -313,32 +313,6 @@ function setupAppendageToggles() {
     });
 }
 
-function setupSchematicRedraw() {
-    // Redraw schematic when key geometry values change
-    const geometryInputs = ['LWL', 'B', 'T', 'D', 'Cp', 'Cb'];
-    geometryInputs.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('change', drawShipSchematic);
-            el.addEventListener('input', debounce(drawShipSchematic, 300));
-        }
-    });
-
-    // Redraw when appendage toggles change
-    ['has_bulbous_bow', 'has_transom', 'has_skeg', 'has_strut', 'has_stabilizer'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('change', drawShipSchematic);
-    });
-}
-
-function debounce(fn, ms) {
-    let timer;
-    return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn(...args), ms);
-    };
-}
-
 function formatNumber(value, unit, decimals = 2) {
     if (Math.abs(value) >= 1e6) return `${(value / 1e6).toFixed(decimals)} M${unit}`;
     else if (Math.abs(value) >= 1e3) return `${(value / 1e3).toFixed(decimals)} k${unit}`;
@@ -504,12 +478,8 @@ document.getElementById('sweepBtn').addEventListener('click', runSweep);
 
 window.addEventListener('load', () => {
     setupAppendageToggles();
-    setupSchematicRedraw();
-    drawShipSchematic();
     document.getElementById('resultsContainer').innerHTML = '<p class="placeholder">Configure your hull geometry and click <strong>Predict Single Speed</strong> or <strong>Run Speed Sweep</strong> to begin.</p>';
 });
-
-// ============== Ship Schematic Drawing ==============
 
 function drawShipSchematic() {
     const canvas = document.getElementById('shipCanvas');

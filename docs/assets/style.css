@@ -153,6 +153,37 @@ h2:first-child { margin-top: 0; }
     border-bottom: 1px solid var(--border);
 }
 
+.ship-schematic {
+    margin-top: 24px;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.ship-schematic h2 {
+    margin-top: 0;
+}
+
+.ship-schematic canvas {
+    display: block;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+.schematic-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
 .buttons {
     display: flex;
     gap: 12px;

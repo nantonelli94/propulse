@@ -159,10 +159,13 @@ function shaftBearingEfficiency(geom) {
     return etaB;
 }
 
-function predictResistance(geom, Vs, method) {
+function predictResistance(geom, Vs_knots, method) {
     const L = geom.LWL, g = geom.g;
     const rho = geom.rho;
     const S = wettedSurface(geom);
+
+    // Convert knots to m/s
+    const Vs = Vs_knots * 0.514444;
 
     const Fn = Vs / Math.sqrt(g * L);
     const Re = Vs * L / geom.nu;
@@ -310,6 +313,32 @@ function setupAppendageToggles() {
     });
 }
 
+function setupSchematicRedraw() {
+    // Redraw schematic when key geometry values change
+    const geometryInputs = ['LWL', 'B', 'T', 'D', 'Cp', 'Cb'];
+    geometryInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', drawShipSchematic);
+            el.addEventListener('input', debounce(drawShipSchematic, 300));
+        }
+    });
+
+    // Redraw when appendage toggles change
+    ['has_bulbous_bow', 'has_transom', 'has_skeg', 'has_strut', 'has_stabilizer'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', drawShipSchematic);
+    });
+}
+
+function debounce(fn, ms) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), ms);
+    };
+}
+
 function formatNumber(value, unit, decimals = 2) {
     if (Math.abs(value) >= 1e6) return `${(value / 1e6).toFixed(decimals)} M${unit}`;
     else if (Math.abs(value) >= 1e3) return `${(value / 1e3).toFixed(decimals)} k${unit}`;
@@ -441,9 +470,9 @@ async function predictSingle() {
     showLoading();
     try {
         const geom = getGeometry();
-        const Vs = parseFloat(document.getElementById('Vs').value);
+        const Vs_knots = parseFloat(document.getElementById('Vs').value);
         const method = document.getElementById('method').value;
-        const data = predictResistance(geom, Vs, method);
+        const data = predictResistance(geom, Vs_knots, method);
         displayResult(data);
     } catch (e) {
         showError(`Prediction failed: ${e.message}`);
@@ -454,17 +483,17 @@ async function runSweep() {
     showLoading();
     try {
         const geom = getGeometry();
-        const Vmin = parseFloat(document.getElementById('Vmin').value);
-        const Vmax = parseFloat(document.getElementById('Vmax').value);
+        const Vmin_knots = parseFloat(document.getElementById('Vmin').value);
+        const Vmax_knots = parseFloat(document.getElementById('Vmax').value);
         const nPoints = parseInt(document.getElementById('n_points').value);
         const method = document.getElementById('method').value;
 
         const results = [];
         for (let i = 0; i < nPoints; i++) {
-            const Vs = Vmin + (Vmax - Vmin) * i / (nPoints - 1);
-            results.push(predictResistance(geom, Vs, method));
+            const Vs_knots = Vmin_knots + (Vmax_knots - Vmin_knots) * i / (nPoints - 1);
+            results.push(predictResistance(geom, Vs_knots, method));
         }
-        displaySweep(results, method, Vmin, Vmax, nPoints);
+        displaySweep(results, method, Vmin_knots, Vmax_knots, nPoints);
     } catch (e) {
         showError(`Sweep failed: ${e.message}`);
     }
@@ -475,5 +504,233 @@ document.getElementById('sweepBtn').addEventListener('click', runSweep);
 
 window.addEventListener('load', () => {
     setupAppendageToggles();
+    setupSchematicRedraw();
+    drawShipSchematic();
     document.getElementById('resultsContainer').innerHTML = '<p class="placeholder">Configure your hull geometry and click <strong>Predict Single Speed</strong> or <strong>Run Speed Sweep</strong> to begin.</p>';
 });
+
+// ============== Ship Schematic Drawing ==============
+
+function drawShipSchematic() {
+    const canvas = document.getElementById('shipCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // Clear
+    ctx.clearRect(0, 0, W, H);
+
+    // Get geometry
+    const LWL = parseFloat(document.getElementById('LWL').value) || 100;
+    const B = parseFloat(document.getElementById('B').value) || 15;
+    const T = parseFloat(document.getElementById('T').value) || 5;
+    const D = parseFloat(document.getElementById('D').value) || 3.5;
+    const Cb = parseFloat(document.getElementById('Cb').value) || 0.7;
+    const Cp = parseFloat(document.getElementById('Cp').value) || 0.65;
+
+    // Scale
+    const margin = 60;
+    const scaleX = (W - 2 * margin) / LWL;
+    const scaleY = (H - 2 * margin) / (B * 1.2);
+    const scale = Math.min(scaleX, scaleY);
+
+    const shipL = LWL * scale;
+    const shipB = B * scale;
+    const shipD = D * scale;
+    const shipT = T * scale;
+
+    const startX = (W - shipL) / 2;
+    const startY = margin + shipB / 2;
+
+    // Waterline
+    const waterlineY = startY + shipT / 2;
+
+    // Baseline
+    const baselineY = startY - shipT / 2;
+
+    // Draw grid
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 10; i++) {
+        const y = margin + i * (H - 2 * margin) / 10;
+        ctx.beginPath();
+        ctx.moveTo(margin, y);
+        ctx.lineTo(W - margin, y);
+        ctx.stroke();
+    }
+    for (let i = 0; i <= 10; i++) {
+        const x = margin + i * (W - 2 * margin) / 10;
+        ctx.beginPath();
+        ctx.moveTo(x, margin);
+        ctx.lineTo(x, H - margin);
+        ctx.stroke();
+    }
+
+    // Draw ship hull (side view)
+    ctx.strokeStyle = '#1e3a5c';
+    ctx.lineWidth = 2.5;
+    ctx.fillStyle = 'rgba(30, 58, 92, 0.08)';
+
+    ctx.beginPath();
+
+    // Bottom line (keel)
+    ctx.moveTo(startX + shipL * 0.05, baselineY);
+    ctx.lineTo(startX + shipL * 0.95, baselineY);
+
+    // Stern (AP) - afterbody
+    ctx.lineTo(startX + shipL, baselineY - shipT * 0.15);
+    ctx.lineTo(startX + shipL, waterlineY);
+
+    // Deck line
+    ctx.lineTo(startX + shipL * 0.08, waterlineY);
+
+    // Bow (FP) - forebody
+    ctx.quadraticCurveTo(
+        startX + shipL * 0.02, waterlineY - shipT * 0.3,
+        startX, waterlineY - shipT * 0.1
+    );
+
+    // Close path
+    ctx.lineTo(startX + shipL * 0.05, baselineY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Bulbous bow
+    if (document.getElementById('has_bulbous_bow').checked) {
+        ctx.fillStyle = '#00b4d8';
+        ctx.strokeStyle = '#0077b6';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(
+            startX - shipL * 0.02,
+            baselineY - shipT * 0.05,
+            shipL * 0.015,
+            shipT * 0.08,
+            0, 0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    // Waterline
+    ctx.strokeStyle = '#00b4d8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(startX - 10, waterlineY);
+    ctx.lineTo(startX + shipL + 10, waterlineY);
+    ctx.stroke();
+
+    // Baseline
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(startX - 10, baselineY);
+    ctx.lineTo(startX + shipL + 10, baselineY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draft line
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(startX + shipL * 0.05, baselineY);
+    ctx.lineTo(startX + shipL * 0.05, waterlineY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels
+    ctx.fillStyle = '#1e3a5c';
+    ctx.font = 'bold 14px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+
+    // AP (Aft Perpendicular)
+    ctx.fillText('AP', startX + shipL + 20, baselineY + 5);
+
+    // FP (Forward Perpendicular)
+    ctx.fillText('FP', startX - 20, baselineY + 5);
+
+    // Baseline label
+    ctx.fillStyle = '#64748b';
+    ctx.font = '12px Segoe UI, sans-serif';
+    ctx.fillText('Baseline', startX + shipL + 35, baselineY + 5);
+
+    // Waterline label
+    ctx.fillStyle = '#0077b6';
+    ctx.fillText('Waterline', startX + shipL + 45, waterlineY - 5);
+
+    // Draft arrow
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(startX + shipL * 0.05 - 8, baselineY);
+    ctx.lineTo(startX + shipL * 0.05 - 8, waterlineY);
+    ctx.stroke();
+    // Arrow heads
+    ctx.beginPath();
+    ctx.moveTo(startX + shipL * 0.05 - 12, waterlineY);
+    ctx.lineTo(startX + shipL * 0.05 - 8, waterlineY);
+    ctx.lineTo(startX + shipL * 0.05 - 12, baselineY);
+    ctx.stroke();
+
+    // Midship mark
+    const midX = startX + shipL / 2;
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.beginPath();
+    ctx.moveTo(midX, baselineY);
+    ctx.lineTo(midX, waterlineY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Length dimension
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(startX, baselineY + 25);
+    ctx.lineTo(startX + shipL, baselineY + 25);
+    ctx.stroke();
+    // End ticks
+    ctx.beginPath();
+    ctx.moveTo(startX, baselineY + 20);
+    ctx.lineTo(startX, baselineY + 30);
+    ctx.moveTo(startX + shipL, baselineY + 20);
+    ctx.lineTo(startX + shipL, baselineY + 30);
+    ctx.stroke();
+
+    // LWL label
+    ctx.fillStyle = '#475569';
+    ctx.font = '12px Segoe UI, sans-serif';
+    ctx.fillText(`LWL = ${LWL.toFixed(1)} m`, startX + shipL / 2, baselineY + 40);
+
+    // Title
+    ctx.fillStyle = '#1e3a5c';
+    ctx.font = 'bold 16px Segoe UI, sans-serif';
+    ctx.fillText('Side View (Profile)', W / 2, 25);
+
+    // Superstructure (simplified)
+    ctx.fillStyle = '#cbd5e1';
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1;
+    const ssWidth = shipL * 0.15;
+    const ssHeight = shipT * 0.4;
+    const ssX = startX + shipL * 0.75;
+    const ssY = waterlineY - ssHeight;
+    ctx.fillRect(ssX, ssY, ssWidth, ssHeight);
+    ctx.strokeRect(ssX, ssY, ssWidth, ssHeight);
+
+    // Bridge
+    ctx.fillStyle = '#94a3b8';
+    const bridgeWidth = shipL * 0.08;
+    const bridgeHeight = shipT * 0.25;
+    ctx.fillRect(ssX + ssWidth * 0.2, waterlineY - bridgeHeight - ssHeight, bridgeWidth, bridgeHeight);
+    ctx.strokeRect(ssX + ssWidth * 0.2, waterlineY - bridgeHeight - ssHeight, bridgeWidth, bridgeHeight);
+
+    // Funnel
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(ssX + ssWidth * 0.5, waterlineY - bridgeHeight - ssHeight - shipT * 0.15, shipL * 0.02, shipT * 0.15);
+}

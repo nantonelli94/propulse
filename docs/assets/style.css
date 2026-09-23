@@ -137,6 +137,22 @@ h2:first-child { margin-top: 0; }
     accent-color: var(--accent);
 }
 
+.appendage-params {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+}
+
+.appendage-params h3 {
+    font-size: 1rem;
+    color: var(--primary);
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
 .buttons {
     display: flex;
     gap: 12px;

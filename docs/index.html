@@ -116,6 +116,117 @@
                 </div>
             </div>
 
+            <!-- Bulbous Bow Parameters -->
+            <div id="bulbous_bow_params" class="appendage-params">
+                <h3>Bulbous Bow</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="bulb_area">Bulb Area Ab [m²]</label>
+                        <input type="number" id="bulb_area" value="8" min="0" max="50" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="bulb_height">Bulb Height hb [m]</label>
+                        <input type="number" id="bulb_height" value="1.2" min="0" max="5" step="0.05">
+                    </div>
+                    <div class="form-group">
+                        <label for="bulb_xpos">Bulb X-Pos (fwd of AP) [m]</label>
+                        <input type="number" id="bulb_xpos" value="5" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="bulb_volume">Bulb Volume [m³]</label>
+                        <input type="number" id="bulb_volume" value="25" min="0" max="200" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transom Parameters -->
+            <div id="transom_params" class="appendage-params" style="display:none;">
+                <h3>Transom Stern</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="transom_area">Transom Area At [m²]</label>
+                        <input type="number" id="transom_area" value="12" min="0" max="50" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="transom_draft">Transom Draft Tt [m]</label>
+                        <input type="number" id="transom_draft" value="4.5" min="0" max="15" step="0.05">
+                    </div>
+                    <div class="form-group">
+                        <label for="transom_width">Transom Width Bt [m]</label>
+                        <input type="number" id="transom_width" value="14" min="0" max="50" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skeg Parameters -->
+            <div id="skeg_params" class="appendage-params" style="display:none;">
+                <h3>Skeg</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="skeg_area">Skeg Area As [m²]</label>
+                        <input type="number" id="skeg_area" value="6" min="0" max="30" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="skeg_length">Skeg Length Ls [m]</label>
+                        <input type="number" id="skeg_length" value="8" min="0" max="30" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="skeg_height">Skeg Height Hs [m]</label>
+                        <input type="number" id="skeg_height" value="3" min="0" max="10" step="0.05">
+                    </div>
+                    <div class="form-group">
+                        <label for="skeg_xpos">Skeg X-Pos (fwd of AP) [m]</label>
+                        <input type="number" id="skeg_xpos" value="3" min="0" max="20" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shaft Strut Parameters -->
+            <div id="strut_params" class="appendage-params" style="display:none;">
+                <h3>Shaft Struts</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="strut_area">Strut Area Astrut [m²]</label>
+                        <input type="number" id="strut_area" value="4" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="strut_length">Strut Length Lstrut [m]</label>
+                        <input type="number" id="strut_length" value="6" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="strut_angle">Strut Angle [deg]</label>
+                        <input type="number" id="strut_angle" value="8" min="0" max="30" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="strut_chord">Strut Chord cstrut [m]</label>
+                        <input type="number" id="strut_chord" value="1.5" min="0" max="5" step="0.05">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stabilizer Fin Parameters -->
+            <div id="stabilizer_params" class="appendage-params" style="display:none;">
+                <h3>Stabilizer Fins</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fin_area">Fin Area Afin [m²]</label>
+                        <input type="number" id="fin_area" value="2.5" min="0" max="15" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="fin_span">Fin Span bfin [m]</label>
+                        <input type="number" id="fin_span" value="1.8" min="0" max="8" step="0.05">
+                    </div>
+                    <div class="form-group">
+                        <label for="fin_chord">Fin Chord cfin [m]</label>
+                        <input type="number" id="fin_chord" value="1.2" min="0" max="5" step="0.05">
+                    </div>
+                    <div class="form-group">
+                        <label for="fin_xpos">Fin X-Pos (fwd of AP) [m]</label>
+                        <input type="number" id="fin_xpos" value="15" min="0" max="50" step="0.1">
+                    </div>
+                </div>
+            </div>
+
             <h2>Environment</h2>
             <div class="form-grid">
                 <div class="form-group">

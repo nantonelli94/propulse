@@ -73,14 +73,55 @@ function appendageResistance(geom, Vs) {
     const rho = geom.rho;
     const S = wettedSurface(geom);
     const Re = Vs * geom.LWL / geom.nu;
-    let k2 = 1.0;
-    if (geom.has_bulbous_bow) k2 += 0.05;
-    if (geom.has_transom) k2 += 0.02;
-    if (geom.has_skeg) k2 += 0.03;
-    if (geom.has_strut) k2 += 0.04;
-    if (geom.has_stabilizer) k2 += 0.02;
     const Cf = frictionCoefficient(Re);
-    return 0.5 * rho * Vs ** 2 * S * k2 * Cf * 0.01;
+    let Rapp = 0.0;
+
+    // Bulbous bow: additional resistance based on bulb geometry
+    if (geom.has_bulbous_bow && geom.bulb_area > 0) {
+        // Simplified Holtrop approach: Rb = k_b * (Ab / (L * T)) * 0.5 * rho * Vs^2 * S * Cf
+        const k_b = 0.5 + 0.02 * (geom.bulb_height / geom.T);
+        Rapp += k_b * (geom.bulb_area / (geom.LWL * geom.T)) * 0.5 * rho * Vs ** 2 * S * Cf;
+    }
+
+    // Transom stern: wave-making contribution at high Fn
+    if (geom.has_transom && geom.transom_area > 0) {
+        const Fn = Vs / Math.sqrt(geom.g * geom.LWL);
+        if (Fn > 0.35) {
+            const k_t = 0.02 * (Fn - 0.35) ** 2;
+            Rapp += k_t * 0.5 * rho * Vs ** 2 * S;
+        }
+    }
+
+    // Skeg: resistance proportional to skeg area
+    if (geom.has_skeg && geom.skeg_area > 0) {
+        const k_s = 0.0947 * (geom.Cb ** 1.281) * (geom.T / geom.B) ** 0.444;
+        Rapp += k_s * (geom.skeg_area / S) * 0.5 * rho * Vs ** 2 * S * Cf;
+    }
+
+    // Shaft struts: resistance based on strut geometry
+    if (geom.has_strut && geom.strut_area > 0) {
+        const k_st = 0.08 + 0.002 * (geom.strut_angle || 0);
+        Rapp += k_st * (geom.strut_area / S) * 0.5 * rho * Vs ** 2 * S * Cf;
+    }
+
+    // Stabilizer fins: resistance based on fin geometry
+    if (geom.has_stabilizer && geom.fin_area > 0) {
+        const k_f = 0.06 + 0.001 * ((geom.fin_span / geom.fin_chord) || 1);
+        Rapp += k_f * (geom.fin_area / S) * 0.5 * rho * Vs ** 2 * S * Cf;
+    }
+
+    // Fallback to simplified k2 if no specific parameters
+    if (Rapp === 0.0) {
+        let k2 = 1.0;
+        if (geom.has_bulbous_bow) k2 += 0.05;
+        if (geom.has_transom) k2 += 0.02;
+        if (geom.has_skeg) k2 += 0.03;
+        if (geom.has_strut) k2 += 0.04;
+        if (geom.has_stabilizer) k2 += 0.02;
+        Rapp = 0.5 * rho * Vs ** 2 * S * k2 * Cf * 0.01;
+    }
+
+    return Rapp;
 }
 
 function hullEfficiency(geom) {
@@ -184,7 +225,7 @@ function predictResistance(geom, Vs, method) {
 // ============== UI Helpers ==============
 
 function getGeometry() {
-    return {
+    const geom = {
         LWL: parseFloat(document.getElementById('LWL').value),
         B: parseFloat(document.getElementById('B').value),
         T: parseFloat(document.getElementById('T').value),
@@ -213,6 +254,60 @@ function getGeometry() {
         windage_coeff: parseFloat(document.getElementById('windage_coeff').value),
         air_density: parseFloat(document.getElementById('air_density').value),
     };
+
+    // Appendage parameters
+    if (geom.has_bulbous_bow) {
+        geom.bulb_area = parseFloat(document.getElementById('bulb_area').value) || 0;
+        geom.bulb_height = parseFloat(document.getElementById('bulb_height').value) || 0;
+        geom.bulb_xpos = parseFloat(document.getElementById('bulb_xpos').value) || 0;
+        geom.bulb_volume = parseFloat(document.getElementById('bulb_volume').value) || 0;
+    }
+    if (geom.has_transom) {
+        geom.transom_area = parseFloat(document.getElementById('transom_area').value) || 0;
+        geom.transom_draft = parseFloat(document.getElementById('transom_draft').value) || 0;
+        geom.transom_width = parseFloat(document.getElementById('transom_width').value) || 0;
+    }
+    if (geom.has_skeg) {
+        geom.skeg_area = parseFloat(document.getElementById('skeg_area').value) || 0;
+        geom.skeg_length = parseFloat(document.getElementById('skeg_length').value) || 0;
+        geom.skeg_height = parseFloat(document.getElementById('skeg_height').value) || 0;
+        geom.skeg_xpos = parseFloat(document.getElementById('skeg_xpos').value) || 0;
+    }
+    if (geom.has_strut) {
+        geom.strut_area = parseFloat(document.getElementById('strut_area').value) || 0;
+        geom.strut_length = parseFloat(document.getElementById('strut_length').value) || 0;
+        geom.strut_angle = parseFloat(document.getElementById('strut_angle').value) || 0;
+        geom.strut_chord = parseFloat(document.getElementById('strut_chord').value) || 0;
+    }
+    if (geom.has_stabilizer) {
+        geom.fin_area = parseFloat(document.getElementById('fin_area').value) || 0;
+        geom.fin_span = parseFloat(document.getElementById('fin_span').value) || 0;
+        geom.fin_chord = parseFloat(document.getElementById('fin_chord').value) || 0;
+        geom.fin_xpos = parseFloat(document.getElementById('fin_xpos').value) || 0;
+    }
+
+    return geom;
+}
+
+// Toggle appendage parameter panels
+function setupAppendageToggles() {
+    const toggles = [
+        { checkbox: 'has_bulbous_bow', panel: 'bulbous_bow_params' },
+        { checkbox: 'has_transom', panel: 'transom_params' },
+        { checkbox: 'has_skeg', panel: 'skeg_params' },
+        { checkbox: 'has_strut', panel: 'strut_params' },
+        { checkbox: 'has_stabilizer', panel: 'stabilizer_params' },
+    ];
+    toggles.forEach(({ checkbox, panel }) => {
+        const cb = document.getElementById(checkbox);
+        const p = document.getElementById(panel);
+        if (!cb || !p) return;
+        cb.addEventListener('change', () => {
+            p.style.display = cb.checked ? 'block' : 'none';
+        });
+        // Initialize state
+        p.style.display = cb.checked ? 'block' : 'none';
+    });
 }
 
 function formatNumber(value, unit, decimals = 2) {
@@ -379,5 +474,6 @@ document.getElementById('predictBtn').addEventListener('click', predictSingle);
 document.getElementById('sweepBtn').addEventListener('click', runSweep);
 
 window.addEventListener('load', () => {
+    setupAppendageToggles();
     document.getElementById('resultsContainer').innerHTML = '<p class="placeholder">Configure your hull geometry and click <strong>Predict Single Speed</strong> or <strong>Run Speed Sweep</strong> to begin.</p>';
 });

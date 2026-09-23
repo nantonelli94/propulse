@@ -518,7 +518,6 @@ function drawShipSchematic() {
     const W = canvas.width;
     const H = canvas.height;
 
-    // Clear
     ctx.clearRect(0, 0, W, H);
 
     // Get geometry
@@ -528,209 +527,386 @@ function drawShipSchematic() {
     const D = parseFloat(document.getElementById('D').value) || 3.5;
     const Cb = parseFloat(document.getElementById('Cb').value) || 0.7;
     const Cp = parseFloat(document.getElementById('Cp').value) || 0.65;
+    const hasBulb = document.getElementById('has_bulbous_bow').checked;
 
-    // Scale
-    const margin = 60;
-    const scaleX = (W - 2 * margin) / LWL;
-    const scaleY = (H - 2 * margin) / (B * 1.2);
-    const scale = Math.min(scaleX, scaleY);
+    // Layout: 3 views side by side
+    // Left: Profile (side view), Center: Body plan (cross-sections), Right: Half-breadth plan (top view)
+    const viewW = W / 3;
+    const margin = 40;
+    const viewH = H - margin * 2;
 
-    const shipL = LWL * scale;
-    const shipB = B * scale;
-    const shipD = D * scale;
-    const shipT = T * scale;
+    // === PROFILE VIEW (Left) ===
+    const pMarginL = 50, pMarginR = 20, pMarginT = 30, pMarginB = 50;
+    const pW = viewW - pMarginL - pMarginR;
+    const pH = viewH - pMarginT - pMarginB;
 
-    const startX = (W - shipL) / 2;
-    const startY = margin + shipB / 2;
+    const pScale = Math.min(pW / LWL, pH / (T * 3));
+    const pShipL = LWL * pScale;
+    const pShipT = T * pScale;
+    const pStartX = pMarginL + (pW - pShipL) / 2;
+    const pStartY = pMarginT + pH / 2 + pShipT / 2; // baseline at center-bottom
 
-    // Waterline
-    const waterlineY = startY + shipT / 2;
+    const pBaselineY = pStartY;
+    const pWaterlineY = pBaselineY - pShipT;
 
-    // Baseline
-    const baselineY = startY - shipT / 2;
-
-    // Draw grid
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 1;
-    for (let i = 0; i <= 10; i++) {
-        const y = margin + i * (H - 2 * margin) / 10;
-        ctx.beginPath();
-        ctx.moveTo(margin, y);
-        ctx.lineTo(W - margin, y);
-        ctx.stroke();
-    }
-    for (let i = 0; i <= 10; i++) {
-        const x = margin + i * (W - 2 * margin) / 10;
-        ctx.beginPath();
-        ctx.moveTo(x, margin);
-        ctx.lineTo(x, H - margin);
-        ctx.stroke();
-    }
-
-    // Draw ship hull (side view)
+    // Hull profile using bezier curves for realistic shape
     ctx.strokeStyle = '#1e3a5c';
-    ctx.lineWidth = 2.5;
-    ctx.fillStyle = 'rgba(30, 58, 92, 0.08)';
+    ctx.lineWidth = 2;
+    ctx.fillStyle = 'rgba(30, 58, 92, 0.06)';
 
     ctx.beginPath();
+    // Start at AP bottom (stern)
+    const apX = pStartX + pShipL * 0.98;
+    const fpX = pStartX + pShipL * 0.02;
 
-    // Bottom line (keel)
-    ctx.moveTo(startX + shipL * 0.05, baselineY);
-    ctx.lineTo(startX + shipL * 0.95, baselineY);
-
-    // Stern (AP) - afterbody
-    ctx.lineTo(startX + shipL, baselineY - shipT * 0.15);
-    ctx.lineTo(startX + shipL, waterlineY);
-
-    // Deck line
-    ctx.lineTo(startX + shipL * 0.08, waterlineY);
-
-    // Bow (FP) - forebody
+    ctx.moveTo(apX, pBaselineY - pShipT * 0.05);
+    // Stern curve up to waterline
     ctx.quadraticCurveTo(
-        startX + shipL * 0.02, waterlineY - shipT * 0.3,
-        startX, waterlineY - shipT * 0.1
+        apX + pShipL * 0.02, pBaselineY - pShipT * 0.15,
+        apX, pWaterlineY - pShipT * 0.02
     );
-
-    // Close path
-    ctx.lineTo(startX + shipL * 0.05, baselineY);
+    // Deck line from stern to bow
+    ctx.lineTo(fpX + pShipL * 0.05, pWaterlineY);
+    // Bow curve down to waterline
+    ctx.quadraticCurveTo(
+        fpX - pShipL * 0.01, pWaterlineY + pShipT * 0.05,
+        fpX, pWaterlineY + pShipT * 0.02
+    );
+    // Down to bottom
+    ctx.quadraticCurveTo(
+        fpX - pShipL * 0.02, pBaselineY - pShipT * 0.05,
+        pStartX + pShipL * 0.15, pBaselineY
+    );
+    // Keel (bottom) from bow area to stern
+    ctx.lineTo(apX, pBaselineY);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     // Bulbous bow
-    if (document.getElementById('has_bulbous_bow').checked) {
+    if (hasBulb) {
         ctx.fillStyle = '#00b4d8';
         ctx.strokeStyle = '#0077b6';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.ellipse(
-            startX - shipL * 0.02,
-            baselineY - shipT * 0.05,
-            shipL * 0.015,
-            shipT * 0.08,
+            fpX - pShipL * 0.01,
+            pBaselineY - pShipT * 0.15,
+            pShipL * 0.012,
+            pShipT * 0.12,
             0, 0, Math.PI * 2
         );
         ctx.fill();
         ctx.stroke();
     }
 
-    // Waterline
-    ctx.strokeStyle = '#00b4d8';
+    // Waterline (solid blue)
+    ctx.strokeStyle = '#0077b6';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(startX - 10, waterlineY);
-    ctx.lineTo(startX + shipL + 10, waterlineY);
+    ctx.moveTo(pStartX - 15, pWaterlineY);
+    ctx.lineTo(pStartX + pShipL + 15, pWaterlineY);
     ctx.stroke();
 
-    // Baseline
+    // Baseline (dashed)
     ctx.strokeStyle = '#64748b';
     ctx.lineWidth = 1.5;
-    ctx.setLineDash([5, 5]);
+    ctx.setLineDash([6, 4]);
     ctx.beginPath();
-    ctx.moveTo(startX - 10, baselineY);
-    ctx.lineTo(startX + shipL + 10, baselineY);
+    ctx.moveTo(pStartX - 15, pBaselineY);
+    ctx.lineTo(pStartX + pShipL + 15, pBaselineY);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Draft line
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
+    // Keel line (solid, thicker)
+    ctx.strokeStyle = '#1e3a5c';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(startX + shipL * 0.05, baselineY);
-    ctx.lineTo(startX + shipL * 0.05, waterlineY);
+    ctx.moveTo(pStartX + pShipL * 0.15, pBaselineY);
+    ctx.lineTo(apX, pBaselineY);
+    ctx.stroke();
+
+    // AP line (vertical dashed)
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(apX, pWaterlineY - 10);
+    ctx.lineTo(apX, pBaselineY + 10);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Labels
-    ctx.fillStyle = '#1e3a5c';
-    ctx.font = 'bold 14px Segoe UI, sans-serif';
-    ctx.textAlign = 'center';
-
-    // AP (Aft Perpendicular)
-    ctx.fillText('AP', startX + shipL + 20, baselineY + 5);
-
-    // FP (Forward Perpendicular)
-    ctx.fillText('FP', startX - 20, baselineY + 5);
-
-    // Baseline label
-    ctx.fillStyle = '#64748b';
-    ctx.font = '12px Segoe UI, sans-serif';
-    ctx.fillText('Baseline', startX + shipL + 35, baselineY + 5);
-
-    // Waterline label
-    ctx.fillStyle = '#0077b6';
-    ctx.fillText('Waterline', startX + shipL + 45, waterlineY - 5);
-
-    // Draft arrow
-    ctx.strokeStyle = '#64748b';
-    ctx.lineWidth = 1;
+    // FP line (vertical dashed)
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
     ctx.beginPath();
-    ctx.moveTo(startX + shipL * 0.05 - 8, baselineY);
-    ctx.lineTo(startX + shipL * 0.05 - 8, waterlineY);
+    ctx.moveTo(fpX, pWaterlineY - 10);
+    ctx.lineTo(fpX, pBaselineY + 10);
     ctx.stroke();
-    // Arrow heads
-    ctx.beginPath();
-    ctx.moveTo(startX + shipL * 0.05 - 12, waterlineY);
-    ctx.lineTo(startX + shipL * 0.05 - 8, waterlineY);
-    ctx.lineTo(startX + shipL * 0.05 - 12, baselineY);
-    ctx.stroke();
+    ctx.setLineDash([]);
 
     // Midship mark
-    const midX = startX + shipL / 2;
+    const midX = pStartX + pShipL / 2;
     ctx.strokeStyle = '#94a3b8';
     ctx.lineWidth = 1;
-    ctx.setLineDash([2, 2]);
+    ctx.setLineDash([2, 3]);
     ctx.beginPath();
-    ctx.moveTo(midX, baselineY);
-    ctx.lineTo(midX, waterlineY);
+    ctx.moveTo(midX, pWaterlineY - 5);
+    ctx.lineTo(midX, pBaselineY + 5);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Length dimension
+    // Draft dimension (vertical, left side)
+    const draftX = pStartX - 25;
     ctx.strokeStyle = '#475569';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(startX, baselineY + 25);
-    ctx.lineTo(startX + shipL, baselineY + 25);
+    ctx.moveTo(draftX, pBaselineY);
+    ctx.lineTo(draftX, pWaterlineY);
+    ctx.stroke();
+    // Arrow heads
+    ctx.beginPath();
+    ctx.moveTo(draftX - 4, pBaselineY);
+    ctx.lineTo(draftX, pBaselineY);
+    ctx.lineTo(draftX + 4, pBaselineY);
+    ctx.moveTo(draftX - 4, pWaterlineY);
+    ctx.lineTo(draftX, pWaterlineY);
+    ctx.lineTo(draftX + 4, pWaterlineY);
+    ctx.stroke();
+
+    // Draft label
+    ctx.fillStyle = '#475569';
+    ctx.font = '11px Segoe UI, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`T = ${T.toFixed(1)} m`, draftX - 8, (pBaselineY + pWaterlineY) / 2 + 4);
+
+    // LWL dimension (horizontal, bottom)
+    const dimY = pBaselineY + 30;
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pStartX, dimY);
+    ctx.lineTo(pStartX + pShipL, dimY);
     ctx.stroke();
     // End ticks
     ctx.beginPath();
-    ctx.moveTo(startX, baselineY + 20);
-    ctx.lineTo(startX, baselineY + 30);
-    ctx.moveTo(startX + shipL, baselineY + 20);
-    ctx.lineTo(startX + shipL, baselineY + 30);
+    ctx.moveTo(pStartX, dimY - 4);
+    ctx.lineTo(pStartX, dimY + 4);
+    ctx.lineTo(pStartX + pShipL, dimY - 4);
+    ctx.lineTo(pStartX + pShipL, dimY + 4);
     ctx.stroke();
 
     // LWL label
     ctx.fillStyle = '#475569';
-    ctx.font = '12px Segoe UI, sans-serif';
-    ctx.fillText(`LWL = ${LWL.toFixed(1)} m`, startX + shipL / 2, baselineY + 40);
+    ctx.font = '11px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`LWL = ${LWL.toFixed(1)} m`, pStartX + pShipL / 2, dimY + 16);
+
+    // AP label (below AP line)
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 12px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('AP', apX, pBaselineY + 22);
+
+    // FP label (below FP line)
+    ctx.fillText('FP', fpX, pBaselineY + 22);
+
+    // Baseline label (right side)
+    ctx.fillStyle = '#64748b';
+    ctx.font = '11px Segoe UI, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Baseline', pStartX + pShipL + 8, pBaselineY + 4);
+
+    // Waterline label (right side, above)
+    ctx.fillStyle = '#0077b6';
+    ctx.fillText('WL', pStartX + pShipL + 8, pWaterlineY - 5);
+
+    // View title
+    ctx.fillStyle = '#1e3a5c';
+    ctx.font = 'bold 12px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Profile View', pMarginL + pW / 2, pMarginT - 12);
+
+    // === BODY PLAN (Center) ===
+    const bMarginL = 20, bMarginR = 20, bMarginT = 30, bMarginB = 30;
+    const bW = viewW - bMarginL - bMarginR;
+    const bH = viewH - bMarginT - bMarginB;
+    const bStartX = viewW + bMarginL + bW / 2; // center of middle view
+    const bStartY = bMarginT + bH / 2;
+
+    const bScale = Math.min(bW / (B * 1.5), bH / (T * 3));
+    const bShipB = B * bScale;
+    const bShipT = T * bScale;
+
+    // Draw cross-sections at different positions
+    const sections = 7;
+    const sectionSpacing = bH / (sections + 1);
+
+    for (let i = 0; i < sections; i++) {
+        const t = i / (sections - 1); // 0 = stern, 1 = bow
+        const y = bStartY + bH / 2 - sectionSpacing * (i + 1) + bH / 2;
+        const x = bStartX;
+
+        // Width at this section (simplified: widest at midship)
+        const widthFactor = 1 - Math.abs(t - 0.5) * 0.6;
+        const halfWidth = (bShipB / 2) * widthFactor;
+
+        // Draw section (simplified U-shape)
+        ctx.strokeStyle = '#1e3a5c';
+        ctx.lineWidth = 1;
+        ctx.fillStyle = 'rgba(30, 58, 92, 0.04)';
+
+        ctx.beginPath();
+        ctx.moveTo(x - halfWidth, y + bShipT * 0.1);
+        ctx.lineTo(x + halfWidth, y + bShipT * 0.1);
+        ctx.quadraticCurveTo(
+            x + halfWidth, y - bShipT * 0.2,
+            x + halfWidth * 0.6, y - bShipT * 0.35
+        );
+        ctx.lineTo(x - halfWidth * 0.6, y - bShipT * 0.35);
+        ctx.quadraticCurveTo(
+            x - halfWidth, y - bShipT * 0.2,
+            x - halfWidth, y + bShipT * 0.1
+        );
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    // Centerline
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(bStartX, bStartY - bH / 2 - 10);
+    ctx.lineTo(bStartX, bStartY + bH / 2 + 10);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Waterline on body plan
+    ctx.strokeStyle = '#0077b6';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bStartX - bShipB / 2 - 5, bStartY - bShipT * 0.35);
+    ctx.lineTo(bStartX + bShipB / 2 + 5, bStartY - bShipT * 0.35);
+    ctx.stroke();
 
     // Title
     ctx.fillStyle = '#1e3a5c';
-    ctx.font = 'bold 16px Segoe UI, sans-serif';
-    ctx.fillText('Side View (Profile)', W / 2, 25);
+    ctx.font = 'bold 12px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Body Plan', bStartX, bMarginT - 12);
 
-    // Superstructure (simplified)
-    ctx.fillStyle = '#cbd5e1';
+    // === HALF-BREADTH PLAN (Right) ===
+    const hMarginL = 20, hMarginR = 50, hMarginT = 30, hMarginB = 30;
+    const hW = viewW - hMarginL - hMarginR;
+    const hH = viewH - hMarginT - hMarginB;
+    const hStartX = viewW * 2 + hMarginL;
+    const hStartY = hMarginT + hH / 2;
+
+    const hScale = Math.min(hW / (LWL * 0.8), hH / (B * 0.8));
+    const hShipL = LWL * hScale;
+    const hShipB = B * hScale;
+
+    // Draw waterplane shape (half-breadth)
+    ctx.strokeStyle = '#1e3a5c';
+    ctx.lineWidth = 2;
+    ctx.fillStyle = 'rgba(30, 58, 92, 0.06)';
+
+    ctx.beginPath();
+    // Stern
+    ctx.moveTo(hStartX, hStartY - hShipB * 0.1);
+    ctx.lineTo(hStartX + hShipL * 0.05, hStartY - hShipB * 0.3);
+    // Side to bow
+    ctx.quadraticCurveTo(
+        hStartX + hShipL * 0.5, hStartY - hShipB * 0.45,
+        hStartX + hShipL * 0.95, hStartY - hShipB * 0.2
+    );
+    // Bow
+    ctx.quadraticCurveTo(
+        hStartX + hShipL * 0.99, hStartY - hShipB * 0.05,
+        hStartX + hShipL, hStartY
+    );
+    // Other side
+    ctx.quadraticCurveTo(
+        hStartX + hShipL * 0.99, hStartY + hShipB * 0.05,
+        hStartX + hShipL * 0.95, hStartY + hShipB * 0.2
+    );
+    ctx.quadraticCurveTo(
+        hStartX + hShipL * 0.5, hStartY + hShipB * 0.45,
+        hStartX + hShipL * 0.05, hStartY + hShipB * 0.3
+    );
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Centerline
     ctx.strokeStyle = '#64748b';
     ctx.lineWidth = 1;
-    const ssWidth = shipL * 0.15;
-    const ssHeight = shipT * 0.4;
-    const ssX = startX + shipL * 0.75;
-    const ssY = waterlineY - ssHeight;
-    ctx.fillRect(ssX, ssY, ssWidth, ssHeight);
-    ctx.strokeRect(ssX, ssY, ssWidth, ssHeight);
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(hStartX - 10, hStartY);
+    ctx.lineTo(hStartX + hShipL + 10, hStartY);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-    // Bridge
-    ctx.fillStyle = '#94a3b8';
-    const bridgeWidth = shipL * 0.08;
-    const bridgeHeight = shipT * 0.25;
-    ctx.fillRect(ssX + ssWidth * 0.2, waterlineY - bridgeHeight - ssHeight, bridgeWidth, bridgeHeight);
-    ctx.strokeRect(ssX + ssWidth * 0.2, waterlineY - bridgeHeight - ssHeight, bridgeWidth, bridgeHeight);
+    // AP and FP on half-breadth
+    const hApX = hStartX + hShipL * 0.98;
+    const hFpX = hStartX + hShipL * 0.02;
 
-    // Funnel
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(hApX, hStartY - hShipB / 2 - 5);
+    ctx.lineTo(hApX, hStartY + hShipB / 2 + 5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(hFpX, hStartY - hShipB / 2 - 5);
+    ctx.lineTo(hFpX, hStartY + hShipB / 2 + 5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 12px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('AP', hApX, hStartY + hShipB / 2 + 20);
+    ctx.fillText('FP', hFpX, hStartY + hShipB / 2 + 20);
+
+    // Beam dimension
+    const beamY = hStartY + hShipB / 2 + 25;
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(hStartX + hShipL / 4, beamY);
+    ctx.lineTo(hStartX + hShipL * 3 / 4, beamY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(hStartX + hShipL / 4, beamY - 4);
+    ctx.lineTo(hStartX + hShipL / 4, beamY + 4);
+    ctx.lineTo(hStartX + hShipL * 3 / 4, beamY - 4);
+    ctx.lineTo(hStartX + hShipL * 3 / 4, beamY + 4);
+    ctx.stroke();
+
     ctx.fillStyle = '#475569';
-    ctx.fillRect(ssX + ssWidth * 0.5, waterlineY - bridgeHeight - ssHeight - shipT * 0.15, shipL * 0.02, shipT * 0.15);
+    ctx.font = '11px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`B = ${B.toFixed(1)} m`, hStartX + hShipL / 2, beamY + 16);
+
+    // Title
+    ctx.fillStyle = '#1e3a5c';
+    ctx.font = 'bold 12px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Half-Breadth Plan', hStartX + hW / 2, hMarginT - 12);
+
+    // === Watermark ===
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('PROPULSE - Schematic View', W / 2, H - 8);
 }

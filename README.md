@@ -147,7 +147,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Author
 
-**Nicolas Antonelli** — Naval Architect & CFD Engineer
+**Nicolas Antonelli** — Marine Engineer, CFD Analyst
 
 - GitHub: [@nantonelli94](https://github.com/nantonelli94)
 - LinkedIn: [Nicolas Antonelli](https://linkedin.com/in/nantonelli94)
